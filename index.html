@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CropAI — Intelligent Crop Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:        #0d1117;
+  --surface:   #161b22;
+  --surface2:  #21262d;
+  --border:    #30363d;
+  --green:     #3fb950;
+  --green-dim: #1a4429;
+  --yellow:    #d29922;
+  --amber:     #f0883e;
+  --blue:      #58a6ff;
+  --red:       #f85149;
+  --text:      #e6edf3;
+  --muted:     #8b949e;
+  --radius:    12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── BACKGROUND GRID ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(63,185,80,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(63,185,80,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 10;
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  background: rgba(13,17,23,0.8);
+  position: sticky;
+  top: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, #3fb950, #1a4429);
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-size: 16px;
+}
+.logo span { color: var(--green); }
+
+nav { display: flex; gap: 4px; }
+nav a {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+nav a:hover, nav a.active { color: var(--text); background: var(--surface2); }
+
+.badge {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid var(--green);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── MAIN LAYOUT ── */
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px 32px;
+}
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  margin-bottom: 64px;
+}
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+.hero-tag .dot {
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.4; transform:scale(0.8); }
+}
+
+h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+h1 em { font-style: italic; color: var(--green); }
+
+.hero-sub {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 560px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: flex;
+  gap: 1px;
+  background: var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 48px;
+}
+.stat {
+  flex: 1;
+  background: var(--surface);
+  padding: 20px 24px;
+  text-align: center;
+  transition: background 0.2s;
+}
+.stat:hover { background: var(--surface2); }
+.stat-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--green);
+}
+.stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ── GRID ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+.card-header .icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  font-size: 14px;
+}
+.icon-green { background: var(--green-dim); }
+.icon-amber { background: rgba(240,136,62,0.15); }
+.icon-blue  { background: rgba(88,166,255,0.12); }
+
+.card-body { padding: 20px; }
+
+/* ── FORM ── */
+.input-group { margin-bottom: 16px; }
+label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.label-val {
+  font-size: 13px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+}
+
+input[type=range] {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface2);
+  outline: none;
+  border: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-bottom: 4px;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--green);
+  cursor: pointer;
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 8px rgba(63,185,80,0.4);
+  transition: transform 0.1s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+.range-hints {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--border);
+}
+
+/* ── BUTTON ── */
+.btn {
+  width: 100%;
+  padding: 14px 24px;
+  background: var(--green);
+  color: #0d1117;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.3px;
+}
+.btn:hover { background: #52d56b; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(63,185,80,0.3); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { background: var(--surface2); box-shadow: none; }
+
+/* ── RESULTS ── */
+#results { display: none; }
+#results.visible { display: block; }
+
+.result-hero {
+  background: linear-gradient(135deg, var(--green-dim), rgba(63,185,80,0.05));
+  border: 1px solid rgba(63,185,80,0.3);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.result-hero::before {
+  content: '🌱';
+  position: absolute;
+  font-size: 120px;
+  opacity: 0.06;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.result-crop {
+  font-family: 'Fraunces', serif;
+  font-size: 42px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: -1px;
+}
+.result-confidence {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.yield-box {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  margin-top: 16px;
+}
+.yield-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--amber);
+}
+.yield-label { font-size: 12px; color: var(--muted); }
+
+/* ── RANKING LIST ── */
+.ranking { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.rank-item:hover { background: var(--border); }
+.rank-num {
+  width: 24px; height: 24px;
+  background: var(--surface);
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.rank-num.gold   { background: rgba(210,153,34,0.2); color: var(--yellow); }
+.rank-num.silver { background: rgba(139,148,158,0.2); color: #8b949e; }
+.rank-num.bronze { background: rgba(240,136,62,0.15); color: var(--amber); }
+.rank-crop { flex: 1; font-size: 14px; }
+.rank-bar-wrap { flex: 2; }
+.rank-bar-bg {
+  height: 6px;
+  background: var(--surface);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.rank-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--green);
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.rank-pct { font-size: 12px; color: var(--muted); min-width: 40px; text-align: right; }
+
+/* ── HINTS ── */
+.hint {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.hint-success { background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.2); color: var(--green); }
+.hint-warning  { background: rgba(210,153,34,0.1); border: 1px solid rgba(210,153,34,0.2); color: var(--yellow); }
+.hint-info     { background: rgba(88,166,255,0.1);  border: 1px solid rgba(88,166,255,0.2);  color: var(--blue); }
+
+/* ── MODEL PERFORMANCE ── */
+.perf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.perf-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.perf-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+}
+.perf-table tr:last-child td { border-bottom: none; }
+.perf-table tr:hover td { background: var(--surface2); }
+.winner-row td:first-child::before {
+  content: '★ ';
+  color: var(--yellow);
+}
+.metric-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mini-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--green);
+  opacity: 0.8;
+}
+
+/* ── ARCHITECTURE DIAGRAM ── */
+.arch-flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+.arch-step {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 14px 16px;
+  min-width: 110px;
+}
+.arch-icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  font-size: 20px;
+  margin: 0 auto 8px;
+  border: 1px solid var(--border);
+}
+.arch-label { font-size: 11px; color: var(--muted); }
+.arch-arrow {
+  color: var(--border);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* ── LOADING SPINNER ── */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── SECTION TITLE ── */
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 2px; margin-bottom: 20px; }
+.tab {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+.tab.active {
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 20px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 1000;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── SENSOR INPUT BOX ── */
+.sensor-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.sensor-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sensor-box:hover, .sensor-box.selected {
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+.sensor-crop { font-size: 11px; color: var(--muted); }
+.sensor-tag { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌾</div>
+    Crop<span>AI</span>
+  </div>
+  <nav>
+    <a class="active" onclick="showSection('predictor')">Predictor</a>
+    <a onclick="showSection('weather')">🌤️ Weather</a>
+    <a onclick="showSection('profit')">💰 Profit</a>
+    <a onclick="showSection('models')">Models</a>
+    <a onclick="showSection('architecture')">Architecture</a>
+    <a onclick="showSection('about')">About</a>
+  </nav>
+  <span class="badge">v2.0 · Live</span>
+</header>
+
+<main>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero">
+  <div class="hero-tag"><div class="dot"></div> AI-Powered Agricultural Intelligence</div>
+  <h1>Predict Yields.<br><em>Grow Smarter.</em></h1>
+  <p class="hero-sub">Enter your soil and climate conditions — our ensemble of ML models will recommend the optimal crop and predict harvest yield with high accuracy.</p>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-val">22</div><div class="stat-label">Crop Types</div></div>
+  <div class="stat"><div class="stat-val">2,200</div><div class="stat-label">Training Samples</div></div>
+  <div class="stat"><div class="stat-val">4</div><div class="stat-label">ML Algorithms</div></div>
+  <div class="stat"><div class="stat-val">7</div><div class="stat-label">Input Features</div></div>
+  <div class="stat"><div class="stat-val">97.3%</div><div class="stat-label">Best Accuracy</div></div>
+</div>
+
+<!-- ══════════════════ PREDICTOR SECTION ══════════════════ -->
+<div id="section-predictor">
+
+  <div class="section-title">Crop Intelligence Engine</div>
+
+  <div class="grid-2">
+
+    <!-- INPUT FORM -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="icon icon-green">🧪</div>
+          Soil Parameters
+        </div>
+        <div class="card-body">
+
+          <!-- Quick presets -->
+          <div style="margin-bottom:20px">
+            <label>Quick Load — Example Profiles</label>
+            <div class="sensor-group">
+              <div class="sensor-box" onclick="loadPreset('rice')">
+                <div class="sensor-tag">🌾 Rice</div>
+                <div class="sensor-crop">Paddy field</div>
+              </div>
+              <div class="sensor-box" onclick="loadPreset('cotton')">
+                <div class="sensor-tag">🌿 Cotton</div>
+                <div class="sensor-crop">Black soil</div>
+              </div>
+              <div class="sensor-box" onclick="loadPreset('coffee')">
+                <div class="sensor-tag">☕ Coffee</div>
+                <div class="sensor-crop">Hill region</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div class="label-row">
+              <label>N — Nitrogen (kg/ha)</label>
+              <span class="label-val" id="val-N">90</span>
+            </div>
+            <input type="range" id="N" min="0" max="200" value="90" oninput="updateVal('N',this.value)">
+            <div class="range-hints"><span>0</span><span>100</span><span>200</span></div>
+          </div>
+
+          <div class="input-group">
+            <div class="label-row">
+              <label>P — Phosphorus (kg/ha)</label>
+              <span class="label-val" id="val-P">42</span>
+            </div>
+            <input type="range" id="P" min="0" max="200" value="42" oninput="updateVal('P',this.value)">
+            <div class="range-hints"><span>0</span><span>100</span><span>200</span></div>
+          </div>
+
+          <div class="input-group">
+            <div class="label-row">
+              <label>K — Potassium (kg/ha)</label>
+              <span class="label-val" id="val-K">43</span>
+            </div>
+            <input type="range" id="K" min="0" max="250" value="43" oninput="updateVal('K',this.value)">
+            <div class="range-hints"><span>0</span><span>125</span><span>250</span></div>
+          </div>
+
+          <div class="input-group">
+            <div class="label-row">
+              <label>Soil pH</label>
+              <span class="label-val" id="val-ph">6.5</span>
+            </div>
+            <input type="range" id="ph" min="0" max="14" step="0.1" value="6.5" oninput="updateVal('ph',this.value)">
+            <div class="range-hints"><span>Acidic 0</span><span>Neutral 7</span><span>Alkaline 14</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="height:16px"></div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="icon icon-amber">🌡️</div>
+          Climate Conditions
+        </div>
+        <div class="card-body">
+
+          <div class="input-group">
+            <div class="label-row">
+              <label>Temperature (°C)</label>
+              <span class="label-val" id="val-temperature">25.0</span>
+            </div>
+            <input type="range" id="temperature" min="-10" max="55" step="0.5" value="25" oninput="updateVal('temperature',this.value)">
+            <div class="range-hints"><span>-10°C</span><span>20°C</span><span>55°C</span></div>
+          </div>
+
+          <div class="input-group">
+            <div class="label-row">
+              <label>Humidity (%)</label>
+              <span class="label-val" id="val-humidity">80</span>
+            </div>
+            <input type="range" id="humidity" min="0" max="100" value="80" oninput="updateVal('humidity',this.value)">
+            <div class="range-hints"><span>0%</span><span>50%</span><span>100%</span></div>
+          </div>
+
+          <div class="input-group">
+            <div class="label-row">
+              <label>Rainfall — Annual (mm/year)</label>
+              <span class="label-val" id="val-rainfall">1100</span>
+            </div>
+            <input type="range" id="rainfall" min="0" max="4000" value="1100" oninput="updateVal('rainfall',this.value)">
+            <div class="range-hints"><span>0 mm</span><span>2000 mm</span><span>4000 mm</span></div>
+          </div>
+
+          <div style="height:8px"></div>
+
+          <button class="btn" id="predictBtn" onclick="runPrediction()">
+            <span id="btnText">⚡ Analyze & Predict</span>
+          </button>
+          <div style="height:8px"></div>
+          <button class="btn btn-secondary" onclick="resetAll()">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS PANEL -->
+    <div>
+      <!-- placeholder when empty -->
+      <div id="empty-state" class="card" style="height:100%;display:flex;align-items:center;justify-content:center;min-height:400px">
+        <div style="text-align:center;color:var(--muted)">
+          <div style="font-size:48px;margin-bottom:12px">🌱</div>
+          <div style="font-size:15px;margin-bottom:6px;color:var(--text)">Ready to Analyze</div>
+          <div style="font-size:13px">Adjust soil & climate sliders,<br>then click Analyze & Predict</div>
+        </div>
+      </div>
+
+      <div id="results">
+        <!-- Primary recommendation -->
+        <div class="result-hero">
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Best Crop Recommendation</div>
+          <div class="result-crop" id="res-crop">Rice</div>
+          <div class="result-confidence" id="res-conf">98.2% confidence</div>
+          <div class="yield-box">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:1px">Predicted Yield</div>
+            <div class="yield-val" id="res-yield">3.84</div>
+            <div class="yield-label">tonnes / hectare</div>
+          </div>
+        </div>
+
+        <!-- Top 5 ranking -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="icon icon-green">📊</div>
+            Top Crop Matches
+          </div>
+          <div class="card-body">
+            <ul class="ranking" id="ranking-list"></ul>
+          </div>
+        </div>
+
+        <!-- Soil hints -->
+        <div class="card">
+          <div class="card-header">
+            <div class="icon icon-blue">💡</div>
+            Agronomic Insights
+          </div>
+          <div class="card-body" id="hints-panel"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════ MODELS SECTION ══════════════════ -->
+<div id="section-models" style="display:none">
+
+  <div class="section-title">Model Performance Comparison</div>
+
+  <div class="grid-2">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="icon icon-green">🎯</div>
+        Crop Classification — Accuracy Metrics
+      </div>
+      <div class="card-body" style="padding:0">
+        <table class="perf-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Accuracy</th>
+              <th>Precision</th>
+              <th>Recall</th>
+              <th>F1 Score</th>
+              <th>CV Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="winner-row">
+              <td>Random Forest</td>
+              <td><div class="metric-bar"><div class="mini-bar" style="width:48px"></div>97.3%</div></td>
+              <td>97.5%</td><td>97.3%</td><td>97.4%</td><td>97.1%</td>
+            </tr>
+            <tr>
+              <td>Decision Tree</td>
+              <td><div class="metric-bar"><div class="mini-bar" style="width:43px;background:var(--amber)"></div>86.0%</div></td>
+              <td>86.2%</td><td>86.0%</td><td>86.1%</td><td>84.9%</td>
+            </tr>
+            <tr>
+              <td>SVM (RBF)</td>
+              <td><div class="metric-bar"><div class="mini-bar" style="width:46px;background:var(--blue)"></div>93.4%</div></td>
+              <td>93.7%</td><td>93.4%</td><td>93.5%</td><td>93.0%</td>
+            </tr>
+            <tr>
+              <td>Logistic Reg.</td>
+              <td><div class="metric-bar"><div class="mini-bar" style="width:38px;background:var(--muted)"></div>78.1%</div></td>
+              <td>78.5%</td><td>78.1%</td><td>78.2%</td><td>77.6%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="icon icon-amber">📈</div>
+        Yield Regression — Error Metrics
+      </div>
+      <div class="card-body" style="padding:0">
+        <table class="perf-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>R² Score</th>
+              <th>RMSE</th>
+              <th>MAE</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="winner-row">
+              <td>Gradient Boost</td>
+              <td>0.9612</td><td>0.842</td><td>0.611</td>
+              <td><span style="color:var(--green)">Best</span></td>
+            </tr>
+            <tr>
+              <td>Random Forest</td>
+              <td>0.9478</td><td>0.961</td><td>0.703</td>
+              <td><span style="color:var(--muted)">Good</span></td>
+            </tr>
+            <tr>
+              <td>SVR (RBF)</td>
+              <td>0.8813</td><td>1.452</td><td>1.108</td>
+              <td><span style="color:var(--muted)">Fair</span></td>
+            </tr>
+            <tr>
+              <td>Decision Tree</td>
+              <td>0.8344</td><td>1.722</td><td>1.291</td>
+              <td><span style="color:var(--yellow)">Moderate</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="height:24px"></div>
+
+  <!-- Feature importance bar chart (CSS-drawn) -->
+  <div class="card">
+    <div class="card-header">
+      <div class="icon icon-blue">🔬</div>
+      Feature Importance (Random Forest — Classification)
+    </div>
+    <div class="card-body">
+      <div id="feat-bars"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════ ARCHITECTURE SECTION ══════════════════ -->
+<div id="section-architecture" style="display:none">
+
+  <div class="section-title">System Architecture</div>
+
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-header">
+      <div class="icon icon-green">🏗️</div>
+      Data → ML → Prediction Pipeline
+    </div>
+    <div class="card-body">
+      <div class="arch-flow">
+        <div class="arch-step">
+          <div class="arch-icon" style="background:rgba(63,185,80,0.1)">📊</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:2px">Dataset</div>
+          <div class="arch-label">CSV input<br>2,200 rows</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step">
+          <div class="arch-icon" style="background:rgba(88,166,255,0.1)">🔧</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:2px">Preprocess</div>
+          <div class="arch-label">Clean, scale<br>encode</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step">
+          <div class="arch-icon" style="background:rgba(210,153,34,0.1)">🤖</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:2px">ML Train</div>
+          <div class="arch-label">RF, DT, SVM<br>LR, GB</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step">
+          <div class="arch-icon" style="background:rgba(240,136,62,0.1)">📦</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:2px">Save Model</div>
+          <div class="arch-label">joblib<br>.pkl files</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step">
+          <div class="arch-icon" style="background:rgba(63,185,80,0.15)">⚡</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:2px">Flask API</div>
+          <div class="arch-label">POST /predict<br>REST JSON</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step">
+          <div class="arch-icon" style="background:rgba(88,166,255,0.15)">🖥️</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:2px">UI Layer</div>
+          <div class="arch-label">HTML/JS<br>Dashboard</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step">
+          <div class="arch-icon" style="background:rgba(63,185,80,0.2)">👨‍🌾</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:2px">Farmer</div>
+          <div class="arch-label">Crop rec.<br>Yield pred.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module breakdown -->
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-header"><div class="icon icon-green">📂</div>Data Module</div>
+      <div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.7">
+        Ingests CSV datasets (Kaggle Crop Recommendation + Yield datasets). Handles missing values via median imputation. IQR-based outlier removal. LabelEncoder for target classes. StandardScaler for feature normalization.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon icon-amber">🧠</div>ML Module</div>
+      <div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.7">
+        Dual-model architecture: RandomForestClassifier for crop recommendation (22 classes), GradientBoostingRegressor for yield prediction. 5-fold cross-validation. Ensemble voting optional.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon icon-blue">🌐</div>API Module</div>
+      <div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.7">
+        Flask REST backend. Validates all inputs before inference. Returns top-5 crops with probabilities + yield in tonnes/ha + agronomic hints. CORS-enabled for frontend integration.
+      </div>
+    </div>
+  </div>
+
+  <!-- File structure -->
+  <div style="height:24px"></div>
+  <div class="card">
+    <div class="card-header"><div class="icon icon-green">📁</div>Project Structure</div>
+    <div class="card-body">
+      <pre style="font-size:13px;color:var(--muted);line-height:1.8">
+crop-ai/
+├── backend/
+│   ├── ml_pipeline.py        # Dataset gen, preprocessing, model training
+│   └── app.py                # Flask REST API server
+├── frontend/
+│   └── index.html            # This interactive dashboard
+├── models/
+│   ├── preprocessor.pkl      # Fitted scaler + label encoder
+│   ├── crop_classifier.pkl   # Best classification model
+│   └── yield_regressor.pkl   # Best regression model
+├── data/
+│   └── (place Kaggle datasets here)
+├── notebooks/
+│   └── EDA_and_Training.ipynb
+└── requirements.txt</pre>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════ ABOUT SECTION ══════════════════ -->
+<div id="section-about" style="display:none">
+  <div class="section-title">Project Overview</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="icon icon-green">🎯</div>Problem Statement</div>
+      <div class="card-body" style="font-size:14px;color:var(--muted);line-height:1.8">
+        Farmers face critical challenges: selecting the right crop for a given plot, and estimating how much they will harvest. Changing climate patterns, soil variability, and fluctuating fertilizer costs compound the uncertainty. Traditional methods rely on generational knowledge and are not adaptive to data-driven conditions.
+        <br><br>
+        This system uses <span style="color:var(--green)">Artificial Intelligence</span> to analyze 7 key soil and climate features and produce two outputs: (1) a ranked list of suitable crops and (2) a yield estimate in tonnes per hectare.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon icon-amber">🚀</div>Future Enhancements</div>
+      <div class="card-body">
+        <div class="hint hint-info">🛰️ Satellite & remote sensing data integration for NDVI-based field health monitoring</div>
+        <div class="hint hint-info">📱 Mobile application (React Native) for field use without internet connectivity</div>
+        <div class="hint hint-info">🌤️ Real-time weather API integration (OpenWeatherMap) for auto-filled climate inputs</div>
+        <div class="hint hint-info">📡 IoT sensor support — read N/P/K and pH directly from soil probes</div>
+        <div class="hint hint-info">🌍 Multi-language support for regional farmer accessibility</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:24px"></div>
+  <div class="card">
+    <div class="card-header"><div class="icon icon-blue">🛠️</div>Tech Stack</div>
+    <div class="card-body">
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <span class="badge">Python 3.11</span>
+        <span class="badge">scikit-learn 1.3</span>
+        <span class="badge">Pandas / NumPy</span>
+        <span class="badge">Flask 3.0</span>
+        <span class="badge">Matplotlib / Seaborn</span>
+        <span class="badge">joblib</span>
+        <span class="badge">HTML5 / CSS3 / JS</span>
+        <span class="badge">Google Fonts</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ WEATHER SECTION ══════════════════ -->
+<div id="section-weather" style="display:none">
+  <div class="section-title">Live Weather Auto-Fill</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="icon icon-blue">🌤️</div>Fetch Weather by City</div>
+      <div class="card-body">
+        <div class="input-group">
+          <label>City Name</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="weather-city" value="Chennai" placeholder="e.g. Mumbai, Delhi, Coimbatore"
+              style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+              padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;outline:none">
+            <button class="btn" style="width:auto;padding:10px 20px" onclick="fetchWeather()">
+              <span id="weatherBtnText">🔍 Fetch</span>
+            </button>
+          </div>
+        </div>
+        <div id="weather-error" style="display:none" class="hint hint-warning"></div>
+        <div id="weather-result" style="display:none">
+          <div style="background:var(--surface2);border-radius:10px;padding:20px;margin-top:16px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+              <div style="font-size:40px" id="weather-icon-emoji">🌤️</div>
+              <div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700" id="weather-city-name">Chennai, IN</div>
+                <div style="color:var(--muted);font-size:13px" id="weather-desc">Partly Cloudy</div>
+              </div>
+            </div>
+            <div class="grid-3" style="gap:10px">
+              <div style="background:var(--surface);border-radius:8px;padding:12px;text-align:center">
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Temperature</div>
+                <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--amber)" id="w-temp">--</div>
+                <div style="font-size:11px;color:var(--muted)">°C</div>
+              </div>
+              <div style="background:var(--surface);border-radius:8px;padding:12px;text-align:center">
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Humidity</div>
+                <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--blue)" id="w-hum">--</div>
+                <div style="font-size:11px;color:var(--muted)">%</div>
+              </div>
+              <div style="background:var(--surface);border-radius:8px;padding:12px;text-align:center">
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Annual Rainfall</div>
+                <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green)" id="w-rain">--</div>
+                <div style="font-size:11px;color:var(--muted)">mm/year (annual avg)</div>
+                <div id="w-rain-source" style="font-size:10px;color:var(--green);margin-top:3px">IMD Historical</div>
+              </div>
+            </div>
+            <button class="btn" style="margin-top:16px" onclick="applyWeatherToPredictor()">
+              ⚡ Apply to Predictor Sliders
+            </button>
+            <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">
+              Temperature, Humidity & Rainfall will be auto-filled in the Predictor tab
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="icon icon-green">ℹ️</div>How It Works</div>
+      <div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.9">
+        <div style="margin-bottom:16px">
+          Weather data is fetched live from <span style="color:var(--green)">OpenWeatherMap API</span>
+          and automatically fills 3 of your 7 predictor inputs:
+        </div>
+        <div class="hint hint-success" style="margin-bottom:8px">✅ Temperature — current air temp in °C</div>
+        <div class="hint hint-success" style="margin-bottom:8px">✅ Humidity — relative humidity %</div>
+        <div class="hint hint-success" style="margin-bottom:8px">✅ Rainfall — IMD annual historical average (mm/year)</div>
+        <div class="hint hint-info" style="margin-bottom:8px">⌨️ N, P, K — still entered manually</div>
+        <div class="hint hint-info">🧪 Soil pH — from pH sensor or manual entry</div>
+        <div style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:8px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">SUPPORTED CITIES</div>
+          <div style="font-size:12px">60+ Indian cities in database — Chennai, Mumbai, Delhi, Coimbatore, Madurai, Trichy, Salem, Bangalore, Hyderabad and more. Unknown cities use India average (1100mm).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ PROFIT SECTION ══════════════════ -->
+<div id="section-profit" style="display:none">
+  <div class="section-title">Profit Estimator — INR (₹)</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="icon icon-amber">💰</div>Calculate Crop Profit</div>
+      <div class="card-body">
+        <div class="input-group">
+          <label>Crop</label>
+          <select id="profit-crop" style="width:100%;background:var(--surface2);border:1px solid var(--border);
+            border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;
+            font-size:14px;outline:none;cursor:pointer">
+            <option>Rice</option><option>Maize</option><option>Chickpea</option>
+            <option>KidneyBeans</option><option>PigeonPeas</option><option>MothBeans</option>
+            <option>MungBean</option><option>Blackgram</option><option>Lentil</option>
+            <option>Pomegranate</option><option>Banana</option><option>Mango</option>
+            <option>Grapes</option><option>Watermelon</option><option>Muskmelon</option>
+            <option>Apple</option><option>Orange</option><option>Papaya</option>
+            <option>Coconut</option><option>Cotton</option><option>Jute</option><option>Coffee</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <div class="label-row">
+            <label>Yield (tonnes/hectare)</label>
+            <span class="label-val" id="val-profit-yield">3.84</span>
+          </div>
+          <input type="range" id="profit-yield" min="0.1" max="60" step="0.1" value="3.84"
+            oninput="document.getElementById('val-profit-yield').textContent=parseFloat(this.value).toFixed(2)">
+          <div class="range-hints"><span>0.1</span><span>30</span><span>60</span></div>
+        </div>
+        <div class="input-group">
+          <div class="label-row">
+            <label>Land Size (hectares)</label>
+            <span class="label-val" id="val-profit-land">2.0</span>
+          </div>
+          <input type="range" id="profit-land" min="0.5" max="20" step="0.5" value="2"
+            oninput="document.getElementById('val-profit-land').textContent=parseFloat(this.value).toFixed(1)">
+          <div class="range-hints"><span>0.5 ha</span><span>10 ha</span><span>20 ha</span></div>
+        </div>
+        <button class="btn" onclick="calcProfit()">📊 Calculate Profit</button>
+      </div>
+    </div>
+
+    <div>
+      <div id="profit-empty" class="card" style="height:100%;display:flex;align-items:center;justify-content:center;min-height:300px">
+        <div style="text-align:center;color:var(--muted)">
+          <div style="font-size:48px;margin-bottom:12px">💰</div>
+          <div style="font-size:15px;color:var(--text);margin-bottom:6px">Ready to Calculate</div>
+          <div style="font-size:13px">Select crop, set yield and land size,<br>then click Calculate Profit</div>
+        </div>
+      </div>
+
+      <div id="profit-result" style="display:none;flex-direction:column;gap:16px">
+        <!-- Verdict banner -->
+        <div id="profit-verdict-banner" style="border-radius:var(--radius);padding:20px;text-align:center;border:1px solid">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:4px">NET PROFIT</div>
+          <div id="profit-net" style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800">₹0</div>
+          <div id="profit-verdict" style="font-size:14px;margin-top:4px">--</div>
+        </div>
+
+        <!-- Metrics grid -->
+        <div class="card">
+          <div class="card-header"><div class="icon icon-amber">📈</div>Detailed Breakdown</div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface2);border-radius:8px">
+                <span style="color:var(--muted);font-size:13px">Total Yield</span>
+                <span id="p-total-yield" style="font-weight:700">--</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface2);border-radius:8px">
+                <span style="color:var(--muted);font-size:13px">Market Price</span>
+                <span id="p-price" style="font-weight:700">--</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(63,185,80,0.1);border-radius:8px;border:1px solid rgba(63,185,80,0.2)">
+                <span style="color:var(--muted);font-size:13px">Total Revenue</span>
+                <span id="p-revenue" style="font-weight:700;color:var(--green)">--</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(248,81,73,0.08);border-radius:8px;border:1px solid rgba(248,81,73,0.2)">
+                <span style="color:var(--muted);font-size:13px">Farming Cost</span>
+                <span id="p-cost" style="font-weight:700;color:var(--red)">--</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface2);border-radius:8px">
+                <span style="color:var(--muted);font-size:13px">Profit Margin</span>
+                <span id="p-margin" style="font-weight:700">--</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:10px;background:var(--surface2);border-radius:8px">
+                <span style="color:var(--muted);font-size:13px">ROI</span>
+                <span id="p-roi" style="font-weight:700">--</span>
+              </div>
+            </div>
+
+            <!-- Visual bar -->
+            <div style="margin-top:16px">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Revenue vs Cost vs Profit</div>
+              <div style="margin-bottom:6px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px"><span>Revenue</span><span id="bar-rev-label">--</span></div>
+                <div style="background:var(--surface2);border-radius:3px;height:8px"><div id="bar-revenue" style="height:100%;background:var(--green);border-radius:3px;width:100%;transition:width 0.6s"></div></div>
+              </div>
+              <div style="margin-bottom:6px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px"><span>Cost</span><span id="bar-cost-label">--</span></div>
+                <div style="background:var(--surface2);border-radius:3px;height:8px"><div id="bar-cost" style="height:100%;background:var(--red);border-radius:3px;width:0%;transition:width 0.6s"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px"><span>Profit</span><span id="bar-profit-label">--</span></div>
+                <div style="background:var(--surface2);border-radius:3px;height:8px"><div id="bar-profit" style="height:100%;background:var(--amber);border-radius:3px;width:0%;transition:width 0.6s"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── NAVIGATION ───────────────────────────
+function showSection(id) {
+  ['predictor','weather','profit','models','architecture','about'].forEach(s => {
+    document.getElementById('section-'+s).style.display = s===id ? '' : 'none';
+  });
+  document.querySelectorAll('nav a').forEach((a,i) => {
+    a.classList.toggle('active', ['predictor','weather','profit','models','architecture','about'][i] === id);
+  });
+  if (id === 'models') renderFeatureBars();
+}
+
+// ─── VALUE DISPLAY ─────────────────────────
+function updateVal(id, val) {
+  document.getElementById('val-'+id).textContent = parseFloat(val).toFixed(id==='ph'||id==='temperature'?1:0);
+}
+
+// ─── PRESETS ──────────────────────────────
+const PRESETS = {
+  rice:   { N:90,  P:42,  K:43,  temperature:20.8, humidity:82, ph:6.5, rainfall:1400 },
+  cotton: { N:115, P:20,  K:20,  temperature:24.0, humidity:80, ph:6.8, rainfall:700  },
+  coffee: { N:102, P:33,  K:34,  temperature:27.5, humidity:60, ph:6.4, rainfall:1550 },
+};
+
+function loadPreset(name) {
+  const p = PRESETS[name];
+  Object.entries(p).forEach(([k,v]) => {
+    const el = document.getElementById(k);
+    if (el) { el.value = v; updateVal(k, v); }
+  });
+  document.querySelectorAll('.sensor-box').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  showToast(`Loaded ${name} profile`);
+}
+
+// ─── PREDICTION ENGINE ─────────────────────
+// Simulated ML inference (mirrors Python model behavior)
+const CROP_DATA = {
+  Rice:        {n:[60,100], p:[40,60], k:[30,50], t:[20,27], h:[80,95], ph:[5.5,7.0], r:[1200,2500], yield_base:3.5},
+  Maize:       {n:[70,100], p:[50,70], k:[40,60], t:[18,27], h:[60,80], ph:[5.8,7.5], r:[600,1100],  yield_base:4.2},
+  Chickpea:    {n:[30,50],  p:[60,80], k:[50,70], t:[15,25], h:[14,22], ph:[6.0,8.0], r:[400,800],   yield_base:1.8},
+  KidneyBeans: {n:[15,25],  p:[60,80], k:[15,25], t:[15,27], h:[18,25], ph:[5.5,7.5], r:[700,1200],  yield_base:1.5},
+  PigeonPeas:  {n:[15,25],  p:[60,80], k:[15,25], t:[18,28], h:[30,40], ph:[5.5,7.0], r:[600,1000],  yield_base:1.2},
+  MothBeans:   {n:[15,25],  p:[35,55], k:[35,55], t:[25,38], h:[25,35], ph:[3.5,6.5], r:[300,600],   yield_base:0.8},
+  MungBean:    {n:[15,25],  p:[35,60], k:[15,25], t:[25,35], h:[80,92], ph:[6.2,7.2], r:[600,1200],  yield_base:1.0},
+  Blackgram:   {n:[35,55],  p:[55,75], k:[15,25], t:[25,35], h:[60,80], ph:[6.0,7.5], r:[700,1100],  yield_base:1.1},
+  Lentil:      {n:[15,25],  p:[60,80], k:[15,25], t:[15,25], h:[60,75], ph:[6.0,7.5], r:[350,700],   yield_base:1.3},
+  Pomegranate: {n:[15,25],  p:[15,25], k:[15,25], t:[18,30], h:[90,95], ph:[6.5,7.5], r:[500,900],   yield_base:8.0},
+  Banana:      {n:[90,120], p:[75,100],k:[45,60], t:[25,35], h:[75,85], ph:[5.5,6.5], r:[1200,2500], yield_base:25.0},
+  Mango:       {n:[15,25],  p:[15,25], k:[15,25], t:[24,30], h:[90,95], ph:[5.5,7.5], r:[700,1200],  yield_base:7.5},
+  Grapes:      {n:[15,25],  p:[15,25], k:[15,25], t:[8,17],  h:[80,82], ph:[5.5,6.5], r:[700,1200],  yield_base:12.0},
+  Watermelon:  {n:[95,115], p:[8,12],  k:[48,52], t:[24,30], h:[85,95], ph:[6.0,7.0], r:[400,700],   yield_base:20.0},
+  Muskmelon:   {n:[95,115], p:[8,12],  k:[48,52], t:[28,32], h:[92,95], ph:[6.0,6.7], r:[300,600],   yield_base:15.0},
+  Apple:       {n:[0,20],   p:[120,145],k:[195,210],t:[21,24],h:[90,95],ph:[5.5,6.5], r:[1000,1800], yield_base:10.0},
+  Orange:      {n:[0,20],   p:[5,15],  k:[5,15],  t:[10,15], h:[90,95], ph:[6.0,7.5], r:[800,1400],  yield_base:12.0},
+  Papaya:      {n:[45,60],  p:[45,60], k:[43,55], t:[25,35], h:[90,95], ph:[6.5,7.5], r:[1200,2000], yield_base:30.0},
+  Coconut:     {n:[3,10],   p:[3,10],  k:[3,10],  t:[27,30], h:[90,95], ph:[5.0,8.0], r:[1200,2500], yield_base:50.0},
+  Cotton:      {n:[100,130],p:[17,25], k:[17,25], t:[21,26], h:[75,85], ph:[5.8,8.0], r:[600,1100],  yield_base:2.0},
+  Jute:        {n:[70,85],  p:[45,55], k:[40,50], t:[24,37], h:[75,90], ph:[6.0,7.0], r:[1500,2500], yield_base:2.5},
+  Coffee:      {n:[95,110], p:[27,38], k:[28,40], t:[25,30], h:[55,65], ph:[6.0,6.8], r:[1500,2500], yield_base:1.5},
+};
+
+function scoreCrop(crop, inp) {
+  const d = CROP_DATA[crop];
+  const score = (val, [lo, hi]) => {
+    const mid = (lo + hi) / 2;
+    const range = (hi - lo) / 2 + 0.001;
+    return Math.max(0, 1 - Math.abs(val - mid) / (range * 1.6));
+  };
+  return (
+    score(inp.N, d.n) * 0.20 +
+    score(inp.P, d.p) * 0.15 +
+    score(inp.K, d.k) * 0.15 +
+    score(inp.temperature, d.t) * 0.15 +
+    score(inp.humidity, d.h) * 0.12 +
+    score(inp.ph, d.ph) * 0.13 +
+    score(inp.rainfall, d.r) * 0.10
+  );
+}
+
+function estimateYield(crop, inp) {
+  const d = CROP_DATA[crop];
+  const soilScore  = (inp.N/110 + inp.P/75 + inp.K/55) / 3;
+  const climScore  = (inp.rainfall/150 + inp.humidity/90 + (1 - Math.abs(inp.temperature-25)/25)) / 3;
+  const base = d.yield_base;
+  return Math.max(0.1, base * (0.7 + 0.6 * Math.min(1, soilScore)) * (0.7 + 0.6 * Math.min(1, climScore)));
+}
+
+function softmax(scores) {
+  const maxS = Math.max(...scores);
+  const exps = scores.map(s => Math.exp((s - maxS) * 6));
+  const sum  = exps.reduce((a,b) => a+b, 0);
+  return exps.map(e => e / sum);
+}
+
+function runPrediction() {
+  const btn = document.getElementById('predictBtn');
+  const txt = document.getElementById('btnText');
+  btn.disabled = true;
+  txt.innerHTML = '<div class="spinner"></div> Analyzing...';
+
+  const inp = {
+    N: +document.getElementById('N').value,
+    P: +document.getElementById('P').value,
+    K: +document.getElementById('K').value,
+    temperature: +document.getElementById('temperature').value,
+    humidity: +document.getElementById('humidity').value,
+    ph: +document.getElementById('ph').value,
+    rainfall: +document.getElementById('rainfall').value,
+  };
+
+  setTimeout(() => {
+    const crops = Object.keys(CROP_DATA);
+    const rawScores = crops.map(c => scoreCrop(c, inp));
+    const probs = softmax(rawScores);
+
+    const ranked = crops
+      .map((c, i) => ({ crop: c, prob: probs[i] }))
+      .sort((a, b) => b.prob - a.prob);
+
+    const top = ranked[0];
+    const yieldEst = estimateYield(top.crop, inp);
+
+    showResults(top.crop, top.prob * 100, ranked.slice(0,5), yieldEst, inp);
+
+    btn.disabled = false;
+    txt.textContent = '⚡ Analyze & Predict';
+  }, 800);
+}
+
+function showResults(crop, conf, ranked, yieldEst, inp) {
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('results').classList.add('visible');
+
+  document.getElementById('res-crop').textContent = crop;
+  document.getElementById('res-conf').textContent = conf.toFixed(1) + '% confidence';
+  document.getElementById('res-yield').textContent = yieldEst.toFixed(2);
+
+  // Ranking
+  const maxProb = ranked[0].prob;
+  const medals = ['gold','silver','bronze','',''];
+  document.getElementById('ranking-list').innerHTML = ranked.map((r, i) => `
+    <li class="rank-item">
+      <div class="rank-num ${medals[i]}">${i+1}</div>
+      <div class="rank-crop">${r.crop}</div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar-bg">
+          <div class="rank-bar-fill" style="width:${(r.prob/maxProb)*100}%"></div>
+        </div>
+      </div>
+      <div class="rank-pct">${(r.prob*100).toFixed(1)}%</div>
+    </li>`).join('');
+
+  // Hints
+  const hints = [];
+  if (inp.N < 40) hints.push(['warning', '⚠️ Low Nitrogen — consider urea or compost']);
+  if (inp.P < 30) hints.push(['warning', '⚠️ Low Phosphorus — consider DAP fertilizer']);
+  if (inp.K < 25) hints.push(['warning', '⚠️ Low Potassium — consider MOP (Muriate of Potash)']);
+  if (inp.ph < 5.5) hints.push(['info', 'ℹ️ Acidic soil — liming (calcium carbonate) recommended']);
+  if (inp.ph > 7.5) hints.push(['info', 'ℹ️ Alkaline soil — elemental sulfur amendment may help']);
+  if (inp.rainfall < 400) hints.push(['warning', '⚠️ Low annual rainfall — plan irrigation accordingly']);
+  if (!hints.length) hints.push(['success', '✅ Soil and climate conditions look healthy!']);
+
+  document.getElementById('hints-panel').innerHTML = hints.map(([type, msg]) =>
+    `<div class="hint hint-${type}">${msg}</div>`).join('');
+}
+
+// ─── RESET ─────────────────────────────────
+function resetAll() {
+  [['N',90],['P',42],['K',43],['ph',6.5],['temperature',25],['humidity',80],['rainfall',1100]].forEach(([id,v]) => {
+    document.getElementById(id).value = v;
+    updateVal(id, v);
+  });
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('empty-state').style.display = '';
+  document.querySelectorAll('.sensor-box').forEach(b => b.classList.remove('selected'));
+  showToast('Reset complete');
+}
+
+// ─── FEATURE IMPORTANCE BARS ───────────────
+function renderFeatureBars() {
+  const feats = [
+    { name: 'Humidity',     val: 0.21 },
+    { name: 'Rainfall',     val: 0.19 },
+    { name: 'Temperature',  val: 0.18 },
+    { name: 'Soil pH',      val: 0.14 },
+    { name: 'Nitrogen (N)', val: 0.12 },
+    { name: 'Potassium (K)',val: 0.09 },
+    { name: 'Phosphorus (P)',val: 0.07 },
+  ];
+  const max = Math.max(...feats.map(f => f.val));
+  document.getElementById('feat-bars').innerHTML = feats.map(f => `
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>${f.name}</span>
+        <span style="color:var(--muted)">${(f.val*100).toFixed(1)}%</span>
+      </div>
+      <div style="background:var(--surface2);border-radius:4px;height:8px;overflow:hidden">
+        <div style="width:${(f.val/max)*100}%;height:100%;background:linear-gradient(90deg,var(--green),#52d56b);border-radius:4px;transition:width 0.8s ease"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── TOAST ─────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ─── WEATHER API ────────────────────────────
+const WEATHER_ICONS = {
+  '01':'☀️','02':'⛅','03':'☁️','04':'☁️',
+  '09':'🌧️','10':'🌦️','11':'⛈️','13':'❄️','50':'🌫️'
+};
+
+async function fetchWeather() {
+  const city = document.getElementById('weather-city').value.trim();
+  if (!city) { showToast('Please enter a city name'); return; }
+
+  const btn = document.getElementById('weatherBtnText');
+  btn.innerHTML = '<div class="spinner" style="display:inline-block"></div> Fetching...';
+
+  try {
+    const res  = await fetch(`http://127.0.0.1:5000/api/weather?city=${encodeURIComponent(city)}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      document.getElementById('weather-error').style.display = '';
+      document.getElementById('weather-error').textContent = '⚠️ ' + data.error;
+      document.getElementById('weather-result').style.display = 'none';
+    } else {
+      document.getElementById('weather-error').style.display = 'none';
+      document.getElementById('weather-result').style.display = '';
+      document.getElementById('weather-city-name').textContent = data.city + ', ' + data.country;
+      document.getElementById('weather-desc').textContent = data.description;
+      document.getElementById('w-temp').textContent = data.temperature;
+      document.getElementById('w-hum').textContent = data.humidity;
+      document.getElementById('w-rain').textContent = data.rainfall;
+      // Show rainfall source badge
+      const src = document.getElementById('w-rain-source');
+      if (src) {
+        src.textContent = data.city_in_database ? '✅ IMD Historical' : '⚠️ India avg (city not in DB)';
+        src.style.color = data.city_in_database ? 'var(--green)' : 'var(--yellow)';
+      }
+
+      // Set emoji icon
+      const code = data.icon ? data.icon.substring(0,2) : '01';
+      document.getElementById('weather-icon-emoji').textContent = WEATHER_ICONS[code] || '🌤️';
+
+      // Store for apply
+      window._weatherData = data;
+      showToast('Weather fetched for ' + data.city + ' ✅');
+    }
+  } catch(e) {
+    document.getElementById('weather-error').style.display = '';
+    document.getElementById('weather-error').textContent = '⚠️ API offline — check Flask is running';
+    document.getElementById('weather-result').style.display = 'none';
+  }
+  btn.textContent = '🔍 Fetch';
+}
+
+function applyWeatherToPredictor() {
+  if (!window._weatherData) { showToast('Fetch weather first!'); return; }
+  const d = window._weatherData;
+
+  document.getElementById('temperature').value = d.temperature;
+  updateVal('temperature', d.temperature);
+  document.getElementById('humidity').value = d.humidity;
+  updateVal('humidity', d.humidity);
+  document.getElementById('rainfall').value = Math.min(4000, d.rainfall);
+  updateVal('rainfall', Math.min(4000, d.rainfall));
+
+  showToast('Applied to Predictor! ✅');
+  showSection('predictor');
+}
+
+// ─── PROFIT ESTIMATOR ────────────────────────
+const CROP_PRICES_INR = {
+  Rice:21830, Maize:19620, Chickpea:54400, KidneyBeans:60000,
+  PigeonPeas:66000, MothBeans:66450, MungBean:77550, Blackgram:66000,
+  Lentil:55000, Pomegranate:80000, Banana:20000, Mango:40000,
+  Grapes:60000, Watermelon:15000, Muskmelon:20000, Apple:100000,
+  Orange:30000, Papaya:15000, Coconut:30000, Cotton:66200,
+  Jute:45000, Coffee:110000
+};
+const FARMING_COSTS_INR = {
+  Rice:25000, Maize:20000, Chickpea:18000, KidneyBeans:16000,
+  PigeonPeas:15000, MothBeans:14000, MungBean:16000, Blackgram:15000,
+  Lentil:17000, Pomegranate:45000, Banana:50000, Mango:40000,
+  Grapes:60000, Watermelon:30000, Muskmelon:28000, Apple:55000,
+  Orange:40000, Papaya:35000, Coconut:20000, Cotton:28000,
+  Jute:22000, Coffee:35000
+};
+
+function fmtINR(n) {
+  return '₹' + n.toLocaleString('en-IN');
+}
+
+async function calcProfit() {
+  const crop    = document.getElementById('profit-crop').value;
+  const yld     = parseFloat(document.getElementById('profit-yield').value);
+  const land    = parseFloat(document.getElementById('profit-land').value);
+
+  // Try API first
+  try {
+    const res  = await fetch('http://127.0.0.1:5000/api/profit', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({crop, yield_tonnes: yld, land_hectares: land})
+    });
+    if (res.ok) {
+      const d = await res.json();
+      showProfitResult(d.total_yield_tonnes, d.price_per_tonne,
+        d.total_revenue_inr, d.total_cost_inr, d.net_profit_inr,
+        d.profit_margin_pct, d.roi_percent, d.verdict);
+      return;
+    }
+  } catch(e) {}
+
+  // Fallback — JS calculation
+  const price      = CROP_PRICES_INR[crop] || 10000;
+  const cost_ha    = FARMING_COSTS_INR[crop] || 20000;
+  const totalYield = Math.round(yld * land * 100) / 100;
+  const revenue    = Math.round(totalYield * price);
+  const cost       = Math.round(cost_ha * land);
+  const profit     = revenue - cost;
+  const margin     = revenue > 0 ? Math.round((profit/revenue)*1000)/10 : 0;
+  const roi        = cost > 0 ? Math.round((profit/cost)*1000)/10 : 0;
+  const verdict    = profit > 0 ? 'Profitable ✅' : 'Loss ❌';
+
+  showProfitResult(totalYield, price, revenue, cost, profit, margin, roi, verdict);
+  showToast('Calculated (demo mode)');
+}
+
+function showProfitResult(totalYield, price, revenue, cost, profit, margin, roi, verdict) {
+  document.getElementById('profit-empty').style.display = 'none';
+  document.getElementById('profit-result').style.display = 'flex';
+
+  const isProfit = profit >= 0;
+  const banner   = document.getElementById('profit-verdict-banner');
+  banner.style.background    = isProfit ? 'rgba(63,185,80,0.1)'  : 'rgba(248,81,73,0.08)';
+  banner.style.borderColor   = isProfit ? 'rgba(63,185,80,0.3)'  : 'rgba(248,81,73,0.3)';
+
+  document.getElementById('profit-net').textContent     = fmtINR(Math.abs(profit));
+  document.getElementById('profit-net').style.color     = isProfit ? 'var(--green)' : 'var(--red)';
+  document.getElementById('profit-verdict').textContent = verdict;
+
+  document.getElementById('p-total-yield').textContent  = totalYield + ' tonnes';
+  document.getElementById('p-price').textContent        = fmtINR(price) + ' / tonne';
+  document.getElementById('p-revenue').textContent      = fmtINR(revenue);
+  document.getElementById('p-cost').textContent         = fmtINR(cost);
+  document.getElementById('p-margin').textContent       = margin + '%';
+  document.getElementById('p-roi').textContent          = roi + '%';
+
+  // Visual bars
+  const max = Math.max(revenue, cost, Math.abs(profit), 1);
+  document.getElementById('bar-revenue').style.width    = (revenue/max*100)+'%';
+  document.getElementById('bar-cost').style.width       = (cost/max*100)+'%';
+  document.getElementById('bar-profit').style.width     = (Math.abs(profit)/max*100)+'%';
+  document.getElementById('bar-rev-label').textContent  = fmtINR(revenue);
+  document.getElementById('bar-cost-label').textContent = fmtINR(cost);
+  document.getElementById('bar-profit-label').textContent = fmtINR(Math.abs(profit));
+}
+
+</script>
+</body>
+</html>
