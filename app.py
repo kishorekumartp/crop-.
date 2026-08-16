@@ -140,7 +140,7 @@ def model_info():
 # WEATHER API — OpenWeatherMap
 # ─────────────────────────────────────────────
 
-WEATHER_API_KEY = "16effbff5b6ca07c160ec731f25676de"
+WEATHER_API_KEY = "put your weathers token"
 
 # ── Hybrid Rainfall Lookup Table ──
 # Annual average rainfall (mm/year) for Indian cities — IMD historical normals
